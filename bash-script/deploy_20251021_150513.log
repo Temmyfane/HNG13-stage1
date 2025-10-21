@@ -1,0 +1,6 @@
+[0;32m✓[0m [2025-10-21 15:05:14] =========================================
+[0;32m✓[0m [2025-10-21 15:05:14] DevOps Automated Deployment Script
+[0;32m✓[0m [2025-10-21 15:05:14] =========================================
+[0;34mℹ[0m [2025-10-21 15:05:14] Step 1: Collecting deployment parameters...
+[0;31m✗[0m [2025-10-21 15:06:58] ERROR: SSH key file not found at: "C:Users5400Downloadshng-kp.pem"
+[0;31m✗[0m [2025-10-21 15:06:58] ERROR: Script failed. Check deploy_20251021_150513.log for details.

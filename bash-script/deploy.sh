@@ -80,6 +80,37 @@ validate_port() {
 }
 
 ###########################################
+# File Transfer Function
+###########################################
+
+transfer_files() {
+    local ssh_key="$1"
+    local ssh_user="$2"
+    local server_ip="$3"
+    
+    # Check if rsync is available
+    if command -v rsync &> /dev/null; then
+        log "Using rsync for file transfer..."
+        rsync -avz --delete -e "ssh -i $ssh_key -o StrictHostKeyChecking=no" \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='*.log' \
+            ./ "${ssh_user}@${server_ip}:~/app/" || error "Failed to transfer files with rsync"
+    else
+        log "rsync not found, using tar+ssh for file transfer..."
+        
+        # Create temporary directory on remote
+        ssh -i "$ssh_key" -o StrictHostKeyChecking=no "${ssh_user}@${server_ip}" \
+            "mkdir -p ~/app" || error "Failed to create remote directory"
+        
+        # Create tar archive excluding unnecessary files and transfer
+        tar czf - --exclude='.git' --exclude='node_modules' --exclude='*.log' . | \
+            ssh -i "$ssh_key" -o StrictHostKeyChecking=no "${ssh_user}@${server_ip}" \
+            "cd ~/app && tar xzf -" || error "Failed to transfer files with tar"
+    fi
+}
+
+###########################################
 # Main Script
 ###########################################
 
@@ -218,11 +249,7 @@ ENDSSH
     info "Step 6: Deploying Dockerized application..."
     
     log "Transferring project files to server..."
-    rsync -avz --delete -e "ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" \
-        --exclude='.git' \
-        --exclude='node_modules' \
-        --exclude='*.log' \
-        ./ "${SSH_USER}@${SERVER_IP}:~/app/" || error "Failed to transfer files"
+    transfer_files "$SSH_KEY_PATH" "$SSH_USER" "$SERVER_IP"
     
     log "Files transferred successfully"
     
